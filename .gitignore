@@ -77,6 +77,9 @@
 .ddev/providers/
 .ddev/xhprof/
 
+# Ignore DDEV Traefik TLS certs (contain private keys)
+.ddev/traefik/certs/
+
 # Ignore macOS DS_Store files
 .DS_Store
 **/.DS_Store
