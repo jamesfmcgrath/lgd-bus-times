@@ -1,0 +1,104 @@
+#ddev-generated
+# If you remove the ddev-generated line above you
+# are responsible for maintaining this file. DDEV will not then
+# update it, for example if you add `additional_hostnames`, etc.
+
+http:
+  routers:
+    ldg-bus-times-web-80-http:
+      entrypoints:
+        - http-80
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-web-80"
+      ruleSyntax: v3
+      tls: false
+      # middlewares:
+      #   - "ldg-bus-times-redirectHttps"
+    ldg-bus-times-web-8025-http:
+      entrypoints:
+        - http-8025
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-web-8025"
+      ruleSyntax: v3
+      tls: false
+      # middlewares:
+      #   - "ldg-bus-times-redirectHttps"
+    ldg-bus-times-xhgui-80-http:
+      entrypoints:
+        - http-8143
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-xhgui-80"
+      ruleSyntax: v3
+      tls: false
+      # middlewares:
+      #   - "ldg-bus-times-redirectHttps"
+    
+    
+    
+    ldg-bus-times-web-80-https:
+      entrypoints:
+        - http-443
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-web-80"
+      ruleSyntax: v3
+      
+      tls: true
+      
+    ldg-bus-times-web-8025-https:
+      entrypoints:
+        - http-8026
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-web-8025"
+      ruleSyntax: v3
+      
+      tls: true
+      
+    
+    ldg-bus-times-xhgui-80-https:
+      entrypoints:
+        - http-8142
+      rule: HostRegexp(`^ldg-bus-times\.ddev\.site$`)
+      
+      service: "ldg-bus-times-xhgui-80"
+      ruleSyntax: v3
+      
+      tls: true
+      
+    
+
+  middlewares:
+    ldg-bus-times-redirectHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    ldg-bus-times-web-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-ldg-bus-times-web:80
+        
+    ldg-bus-times-web-8025:
+      loadbalancer:
+        servers:
+          - url: http://ddev-ldg-bus-times-web:8025
+        
+    
+    
+    ldg-bus-times-xhgui-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-ldg-bus-times-xhgui:80
+        
+    
+    
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/ldg-bus-times.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/ldg-bus-times.key
