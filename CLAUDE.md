@@ -5,6 +5,7 @@ This is a Drupal 10/11 project — the `localgov_bus_data` module for Cumberland
 ## Project Context
 
 - **Module:** `web/modules/custom/localgov_bus_data/`
+- **Two repositories:** this repo is the dev site only. The module directory is its own git repository with the Drupal.org remote (git.drupalcode.org). Issue branches (e.g. `3599801-...`) are created in the module repository; the dev site repo does not branch per issue. Run module git commands from inside the module directory or with `git -C web/modules/custom/localgov_bus_data`.
 - **DDEV:** `lgd-bus-data-dev` at `https://lgd-bus-data-dev.ddev.site` (PHP 8.3, nginx-fpm)
 - **Stack:** Drupal 10.2+, LGD (LocalGov Drupal), BODS GTFS bulk download, Leaflet.js + geofield, NaPTAN
 - **Key module:** Phase 5 only (real-time SIRI-SM auth) — not in current codebase
@@ -49,6 +50,7 @@ When a form class (extending `FormBase` or `ConfigFormBase`) injects a service u
 - The injected service property **must be `protected`** (not `private` or `readonly`) so `DependencySerializationTrait::__sleep()` can detect it via `ReverseContainer`. `private` properties are invisible to `get_object_vars()` when called from the parent class scope.
 - **Never override `__sleep()`** — the trait handles serialization automatically once visibility is correct.
 - AJAX callbacks must **build their result element directly** on `$form` before returning it. Do not rely on `$form_state->setRebuild(TRUE)` inside the callback to populate the result — the rebuild happens after the callback returns.
+- This applies to any form using `managed_file` elements: their uploads run via AJAX and serialize the form object.
 
 ## Agent Resources
 
@@ -63,19 +65,18 @@ Use for any Drupal implementation question, API lookup, hook usage, or architect
 ### drupal-reviewer
 **Always run after writing or modifying Drupal PHP files.** This catches security issues, DI violations, render-array escaping gaps, and best-practice problems that PHPCS will not catch. Do not skip this step.
 
+The agent file at `.claude/agents/drupal-reviewer.md` is **customised for this repo** (DDEV check commands with correct paths, repo standards section, `model: inherit`) and is **tracked in this repository**. Do not overwrite it with the generic upstream copy; improve it in place and commit.
+
 ### ddev-expert
 Use when troubleshooting DDEV container issues, config, or service problems. Trigger on any `ddev` error that isn't an obvious application-level issue.
 
-To install (one-time setup):
+To install the skills (one-time setup; the drupal-reviewer agent needs no install, it is tracked in this repo):
 
 ```bash
 uv tool install agr
 agr add madsnorgaard/drupal-agent-resources/drupal-expert --overwrite
 agr add madsnorgaard/drupal-agent-resources/ddev-expert --overwrite
 agr add jamesfmcgrath/drupal-agent-resources/drupal-localgov --overwrite
-mkdir -p .claude/agents
-curl -fsSL -o .claude/agents/drupal-reviewer.md \
-  https://raw.githubusercontent.com/madsnorgaard/drupal-agent-resources/main/.claude/agents/drupal-reviewer.md
 ```
 
-Current `agr` only manages skills; **drupal-reviewer** is installed as a Claude Code agent file under `.claude/agents/`. Use `--overwrite` on `agr add` when refreshing skills.
+Current `agr` only manages skills. There is no `agr update` command: to refresh a skill, re-run its `agr add ... --overwrite` line above.

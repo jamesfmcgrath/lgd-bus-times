@@ -100,6 +100,8 @@
 !README.*.md
 !SPEC.md
 !CLAUDE.md
+# Claude Code agent definitions are repo config, customised for this repo
+!.claude/agents/*.md
 /web/README.md
 
 # Archive folder — stale working docs, not committed
