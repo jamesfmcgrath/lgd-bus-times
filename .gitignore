@@ -69,6 +69,7 @@
 
 # Ignore temp files
 /.phpunit.result.cache
+/web/.phpunit.result.cache
 
 # Ignore ddev configuration folders
 .ddev/.global_commands/
@@ -102,6 +103,8 @@
 !CLAUDE.md
 # Claude Code agent definitions are repo config, customised for this repo
 !.claude/agents/*.md
+# Claude Code slash commands are repo config too
+!.claude/commands/*.md
 /web/README.md
 
 # Archive folder — stale working docs, not committed

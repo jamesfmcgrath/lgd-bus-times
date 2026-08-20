@@ -11,6 +11,8 @@ This is a Drupal 10/11 project — the `localgov_bus_data` module for Cumberland
 - **Key module:** Phase 5 only (real-time SIRI-SM auth) — not in current codebase
 - **Spec:** See `SPEC.md` for full phased delivery plan and architecture decisions
 - **Do not use git worktrees** — work directly in the repo on the feature branch
+- **Route identity:** one page per GTFS route at `buses/routes/{agency_id}/{route_short_name}/{slug}`. The slug (`bustimes_slug`) derives from the headsign at import, unique within (agency, number). Never identify a route by (agency_id, route_short_name) alone: GTFS uniqueness is on route_id, and operators reuse numbers. Legacy two-segment URLs redirect (302).
+- **Start Claude Code sessions from this repo root**, never from inside the module directory; the skills in `.claude/skills/` and this file only load from here.
 
 ## DDEV
 
@@ -22,6 +24,8 @@ ddev composer <command>
 ```
 
 Never run `drush` or `php` directly outside DDEV.
+
+**Never run `drush config:import` (`cim`) on this site.** The sync directory does not track `localgov_bus_data`, so `cim` always wants to uninstall the module. To apply config changes shipped by the module, use `ddev drush updatedb -y` then `ddev drush cr`; the update hooks are idempotent, so re-invoking one via `drush php:eval` is safe.
 
 ## Research-First
 
@@ -42,6 +46,17 @@ Never run `drush` or `php` directly outside DDEV.
 - Add cache metadata to render arrays: `#cache` with tags, contexts, max-age
 - Use `#plain_text` or `Xss::filterAdmin()` for user content; never raw `#markup` with unsanitized input
 - API keys: always store in Key module entities (`drupal/key`), never in plain config — Key module will be added in Phase 5 for SIRI-SM real-time auth
+- Formatting is the Drupal standard via `phpcbf` only. Never run a PSR-12 formatter or editor format-on-save over module files; it rewrites braces and `TRUE`/`FALSE` casing and fails PHPCS.
+- Config shipped in `config/install` applies at install time only. A change to a shipped View reaches existing sites through an update hook that edits active config. Match View paths by suffix, not exact string, because the bus base path is configurable and Cumberland runs it moved. Use `router.builder->rebuild()` when route changes must apply immediately.
+- Entity backfills go in `hook_post_update_NAME()`, not `hook_update_N()`. When mixing raw SQL populates with entity saves, call `$storage->resetCache()` before `loadMultiple()`; a stale entity cache silently reverts the SQL write on save.
+- Views contextual filter exception value: the pipeline treats `all` as a wildcard. Guard route-facing arguments against it and reserve it in slug generation.
+
+## Testing
+
+- Every PHP change ships with PHPUnit tests. Run `ddev exec vendor/bin/phpunit --testsuite custom`, then `phpcbf`, then `phpcs`, before a change is done.
+- **Mutation-check every new test:** temporarily break the behaviour it guards, confirm the test fails, restore, and report which mutation each test catches. A test that stays green with the fix removed is not evidence.
+- **Kernel tests must not enable `localgov_core`** (or any localgov module). CI does not have it; this dev site does, so local green proves nothing about CI. When a test needs a shipped View that references `localgov_page_header_display_extender`, sideload the view YAML with `Symfony\Component\Yaml\Yaml::parseFile()` and strip that extender before saving (see the existing kernel test helper). The GitLab pipeline is the arbiter, not this site.
+- After an import or a timetable-affecting change, run the verification tool: `ddev exec php scripts/timetable-verify/verify.php`. Check 1 (page versus database) must report zero differences; check 2 (bustimes.org) is diagnostic only. Reports land in `scripts/timetable-verify/reports/`.
 
 ## Drupal AJAX Form Pattern
 
